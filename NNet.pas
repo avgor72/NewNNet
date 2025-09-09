@@ -133,14 +133,14 @@ type
     fEpoche              : LongWord;
     fShakePerEpoche      : Word;      //встряхивание сети через  несколько эпох
     fIsShakeOn           : Boolean;   //встряхивать или не встряхивать
-    function TanhF(const V : Extended)  : Extended; //гиперболический тангенс
-    function TanhD(const V : Extended)  : Extended; //и его производная
-    function SigmaF(const V : Extended) : Extended; //сигмоидальная функция и
-    function SigmaD(const V : Extended) : Extended; //её производная
-    function BSigmaF(const V : Extended) : Extended; //биполярная сигмоидальная функция и
-    function BSigmaD(const V : Extended) : Extended; //её производная
-    function ReLuF(const V : Extended) : Extended; //ReLu функция и
-    function ReLuD(const V : Extended) : Extended; //её производная
+    function TanhF(const V : Extended)  : Extended; inline; //гиперболический тангенс
+    function TanhD(const V : Extended)  : Extended; inline;//и его производная
+    function SigmaF(const V : Extended) : Extended; inline;//сигмоидальная функция и
+    function SigmaD(const V : Extended) : Extended; inline;//её производная
+    function BSigmaF(const V : Extended) : Extended; inline;//биполярная сигмоидальная функция и
+    function BSigmaD(const V : Extended) : Extended; inline;//её производная
+    function ReLuF(const V : Extended) : Extended; inline;//ReLu функция и
+    function ReLuD(const V : Extended) : Extended; inline;//её производная
     procedure DeleteNeurons;
     procedure DeleteSinaps;
     procedure SetActivType(const V : TActivType);  // устанавливает функцию активации
@@ -262,7 +262,6 @@ begin
   fPrevBiasUpdate := 0;
 end;
 
-
 procedure TNeuron.Free;
 begin
   DeleteWeightsAndPrevUpdate;
@@ -271,18 +270,15 @@ begin
   inherited Free;
 end;
 
-
 function TNeuron.GetDerive : Extended;  // получить производную
 begin
   Result := fActivationD(fOutPut);
 end;
 
-
 procedure TNeuron.SetSigma(const VSum : Double);
 begin
   fSigma := VSum * GetDerive;
 end;
-
 
 procedure TNeuron.Load(var Stream: TFileStream);
 begin
@@ -291,7 +287,6 @@ begin
   Stream.ReadBuffer(fBias,  SizeOf(fBias));
   Stream.ReadBuffer(fPrevBiasUpdate, SizeOf(fPrevBiasUpdate));
 end;
-
 
 procedure TNeuron.Save(var Stream: TFileStream);
 begin
@@ -304,14 +299,11 @@ end;
 //////////////////////////////////TNeuronBP/////////////////////////////////////
 
 constructor TNeuronBP.Create(const V : Word; const N, L : byte); //размерность входа нейрона, номер в слое и номер слоя
-var
-  i : Word;
 begin
   inherited Create(N, L);
   fCountWeights := V - 1; // длина массива весов по итерациям
   SetLengthWeightsAndPrevUpdate(fCountWeights + 1);
 end;
-
 
 procedure TNeuronBP.SetLengthWeightsAndPrevUpdate(const V : Word);
 var
@@ -325,13 +317,11 @@ begin
   end;
 end;
 
-
 procedure TNeuronBP.DeleteWeightsAndPrevUpdate;
 begin
   fWeights := nil;
   fPrevWeightsUpdate := nil;
 end;
-
 
 procedure TNeuronBP.Calc(var DataArr : TSinaps);
 var
@@ -344,7 +334,6 @@ begin
   fOutPut := fActivationF(Sum);
   DataArr[fLevel + 1, fNum] := fOutPut // записали в следующий слой синапсов
 end;
-
 
 procedure TNeuronBP.Adjust(const fSinaps : TSinaps; const fTeachRate, fMomentum : Double);  //
 var
@@ -361,7 +350,6 @@ begin
   fPrevBiasUpdate := dW;
 end;
 
-
 procedure TNeuronBP.InitWeightsNorm(const ValueWeigts, Deviation : Double);//иниц. весов случайными по распределению Гаусса
 var
   i : Word;
@@ -369,7 +357,6 @@ begin
   for i := 0 to fCountWeights do
     fWeights[i] := RandG(ValueWeigts, Deviation);
 end;
-
 
 procedure TNeuronBP.InitWeightsConst(const Value : Double); //иниц. константой
 var
@@ -379,7 +366,6 @@ begin
     fWeights[i] := Value;
 end;
 
-
 procedure TNeuronBP.InitWeightsBand(const ValueLo, ValueHi : Double); //иниц. случайными в диапазоне
 var
   i : Word;
@@ -388,12 +374,10 @@ begin
     fWeights[i] := RandomRange(Ceil(ValueLo * 10000), Ceil(ValueHi * 10000)) / 10000;
 end;
 
-
 function TNeuronBP.GetBounds : Word;           //количество связей нейрона
 begin
   Result := fCountWeights
 end;
-
 
 procedure TNeuronBP.Load(var Stream : TFileStream);
 var
@@ -408,7 +392,6 @@ begin
   end;
 end;
 
-
 procedure TNeuronBP.Save(var Stream : TFileStream);
 var
   i : Word;
@@ -421,7 +404,6 @@ begin
   end;
 end;
 
-
 procedure TNeuronBP.Shake(const V : Double);     //встряхиваем нейрончик
 var
   k : Word;
@@ -431,7 +413,6 @@ begin
   fBias := RandG(fBias, V);
 end;
 
-
 function TNeuronBP.GetWeight(const i : Word) : Double;    // получить вес
 begin
   Result := fWeights[i]
@@ -439,53 +420,45 @@ end;
 
 ////////////////////////////////TNeuroNet/////////////////////////////////////
 
-function TNeuroNet.TanhF(const V : Extended) : Extended;  //гиперболический тангенс
+function TNeuroNet.TanhF(const V : Extended) : Extended; //гиперболический тангенс
 begin
   Result := TanH(V * Alpha)
 end;
-
 
 function TNeuroNet.TanhD(const V : Extended) : Extended; //и его производная
 begin
   Result := Alpha * (1 - Sqr(TanH(V)))
 end;
 
-
 function TNeuroNet.SigmaF(const V : Extended) : Extended; //сигмоидальная функция
 begin
   Result := 1 / (1 + Exp(-Alpha * V))
 end;
-
 
 function TNeuroNet.SigmaD(const V : Extended) : Extended; //и ее производная
 begin
   Result := Alpha * V * (1 - V)
 end;
 
-
 function TNeuroNet.BSigmaF(const V : Extended) : Extended; //биполярная сигмоидальная функция и
 begin
   Result := 2 / (1 + Exp(-Alpha * V)) - 1
 end;
-
 
 function TNeuroNet.BSigmaD(const V : Extended) : Extended; //её производная
 begin
   Result := (1 + Alpha * V) * (1 - Alpha * V) * 0.5
 end;
 
-
 function TNeuroNet.ReLuF(const V : Extended) : Extended; //ReLu функция и
 begin
   Result := Log10(1 + Exp(Alpha * V));
 end;
 
-
 function TNeuroNet.ReLuD(const V : Extended) : Extended; //её производная
 begin
   Result := 1/(1 + Exp(-Alpha * V));
 end;
-
 
 procedure TNeuroNet.DeleteNeurons;
 var
@@ -497,7 +470,6 @@ begin
   Neurons := nil;
 end;
 
-
 procedure TNeuroNet.DeleteSinaps;
 var
   i : Word;
@@ -506,7 +478,6 @@ begin
     SetLength(Sinaps[i], 0);
   Sinaps := nil;
 end;
-
 
 procedure TNeuroNet.SetActivType(const V : TActivType); //устанавливает функцию активации
 var
@@ -527,9 +498,12 @@ begin
           GetNeuron(i, j).ActivationF := BSigmaF;
           GetNeuron(i, j).ActivationD := BSigmaD;
         end;
+        ReLu : begin
+          GetNeuron(i, j).ActivationF := ReLuF;
+          GetNeuron(i, j).ActivationD := ReLuD;
+        end;
       end;
 end;
-
 
 procedure TNeuroNet.SetInitWeights(const V : TInitWeights); //инициирует веса в нейронах
 var
@@ -545,7 +519,6 @@ begin
       end;
 end;
 
-
 procedure TNeuroNet.SetAlpha(const V : Double);
 begin
   if InRange(V, 0.001, 10) then
@@ -553,7 +526,6 @@ begin
   else
     FAlpha := DefaultAlpha;
 end;
-
 
 procedure TNeuroNet.SetTeachRate(const V : Double);
 begin
@@ -563,7 +535,6 @@ begin
     FTeachRate := DefaultTeachRate
 end;
 
-
 procedure TNeuroNet.SetMomentum(const V : Double);
 begin
   if InRange(V, 0.001, 1) then
@@ -572,12 +543,10 @@ begin
     FMomentum := DefaultMomentum
 end;
 
-
 function TNeuroNet.GetNeuron(const i, j : Word): TNeuron;
 begin
   Result := Neurons[i, j]
 end;
-
 
 function TNeuroNet.GetBounds : Word;              // количество связей в сети
 var
@@ -590,12 +559,10 @@ begin
       Result := Result + GetNeuron(i, j).Bounds;
 end;
 
-
 function TNeuroNet.GetOutputNet : Double;      // получает выход сети
 begin
   Result := Sinaps[fCountFrameWork, 0]
 end;
-
 
 procedure TNeuroNet.SetTopology(const V : array of Word);//первая ячейка массива V - количество входов, далее количество нейронов в каждом слое
 var
@@ -614,7 +581,6 @@ begin
       Sinaps[i, j] := 0.0
   end;
 end;
-
 
 constructor TNeuroNet.Create(const V : array of Word);
 begin
@@ -636,12 +602,10 @@ begin
   RandGaussShake      := DefaultRandGaussShake;
 end;
 
-
 function TNeuroNet.GetInputCount: Word; // размерность входа
 begin
   Result := FrameWork[0] - 1
 end;
-
 
 procedure TNeuroNet.GetData(const V : array of Double); //заполняет входой слой синапсов данными
 var
@@ -650,7 +614,6 @@ begin
   for i := 0 to Min(GetInputCount, High(V)) do  //по минимальному из массивов. вне диапазона игнорируются
     Sinaps[0, i] := V[i];
 end;
-
 
 function TNeuroNet.Calc : Double;
 var
@@ -661,7 +624,6 @@ begin
       GetNeuron(i, j).Calc(Sinaps);
   Result := GetOutputNet  //единственный синапс в последнем слое хранит результ работы сети
 end;
-
 
 procedure TNeuroNet.Load(var Stream: TFileStream);
 var
@@ -694,7 +656,6 @@ begin
   SetActivType(fActivType);
 end;
 
-
 procedure TNeuroNet.Save(var Stream: TFileStream);
 var
   i, j : Word;
@@ -721,7 +682,6 @@ begin
       GetNeuron(i - 1, j).Save(Stream);
 end;
 
-
 procedure TNeuroNet.Shake;                         // встряска сети
 var
   i, j : Word;
@@ -730,7 +690,6 @@ begin
     for j := 0 to FrameWork[i + 1] - 1 do
       GetNeuron(i, j).Shake(RandGaussShake);
 end;
-
 
 procedure TNeuroNet.Free;
 begin
@@ -754,7 +713,6 @@ begin
       Neurons[i - 1, j] := TNeuronBP.Create(FrameWork[i - 1], j, i - 1); // собственно сотворение нейрончика
   end;
 end;
-
 
 procedure TBPNeuroNet.Correct(const Goal: Double); //подстраивает веса по выходному значению сети и целевому значению Goal
 var
@@ -780,7 +738,6 @@ begin
       Shake
 end;
 
-
 function TBPNeuroNet.GetNeuron(const i, j : Word): TNeuron;
 begin
   Result := (Neurons[i, j] as TNeuronBP)
@@ -800,13 +757,11 @@ begin
       fPrevWeightsUpdate[i, j] := 0.0;
 end;
 
-
 procedure TNeuronBeer.DeleteWeightsAndPrevUpdate;
 begin
   fWeights := nil;
   fPrevWeightsUpdate := nil;
 end;
-
 
 procedure TNeuronBeer.Calc(var DataArr : TSinaps);
 var
@@ -820,7 +775,6 @@ begin
   fOutPut := fActivationF(Sum);
   DataArr[fLevel + 1, fNum] := fOutPut      // в следующий слой синапсов
 end;
-
 
 procedure TNeuronBeer.Adjust(const fSinaps : TSinaps; const fTeachRate, fMomentum : Double); //
 var
@@ -839,7 +793,6 @@ begin
   fPrevBiasUpdate := dW;
 end;
 
-
 procedure TNeuronBeer.InitWeightsBand(const ValueLo, ValueHi: Double);
 var
   i, j : Word;
@@ -848,7 +801,6 @@ begin
     for j := 0 to High(fWeights[i]) do
       fWeights[i, j] := RandomRange(Ceil(ValueLo * 10000), Ceil(ValueHi * 10000)) / 10000;
 end;
-
 
 procedure TNeuronBeer.InitWeightsConst(const Value: Double);
 var
@@ -859,7 +811,6 @@ begin
       fWeights[i, j] := Value
 end;
 
-
 procedure TNeuronBeer.InitWeightsNorm(const ValueWeigts, Deviation: Double);
 var
   i, j : Word;
@@ -869,7 +820,6 @@ begin
       fWeights[i, j] := RandG(ValueWeigts, Deviation);
 end;
 
-
 function TNeuronBeer.GetBounds : word; //количество связей нейрона
 var
   i : Word;
@@ -878,7 +828,6 @@ begin
   for i := 0 to High(fWeights) do
     Result := Result + High(fWeights[i]) + 1;
 end;
-
 
 procedure TNeuronBeer.Load(var Stream: TFileStream);
 var
@@ -898,7 +847,6 @@ begin
     end;
 end;
 
-
 procedure TNeuronBeer.Save(var Stream: TFileStream);
 var
   i, j : Word;
@@ -914,7 +862,6 @@ begin
       Stream.WriteBuffer(fPrevWeightsUpdate[i, j], SizeOf(Double));
     end;
 end;
-
 
 procedure TNeuronBeer.SetArrWeightsAndPrevUpdate(const V: array of Word);
 var
@@ -937,7 +884,6 @@ begin
   end;
 end;
 
-
 procedure TNeuronBeer.Shake(const V : Double); // встряхиваем нейрончики
 var
   i, j : Word;
@@ -947,7 +893,6 @@ begin
       fWeights[i, j] := RandG(fWeights[i, j], V);
   fBias := RandG(fBias, V);
 end;
-
 
 function TNeuronBeer.GetWeight(const i, j : Word) : Double; // получить вес
 begin
@@ -969,7 +914,6 @@ begin
       Neurons[i - 1, j] := TNeuronBeer.Create(FrameWork, j, i - 1);
   end;
 end;
-
 
 procedure TBeerNeuroNet.Correct(const Goal : Double);
 var
@@ -996,7 +940,6 @@ begin
       Shake
 end;
 
-
 function TBeerNeuroNet.GetNeuron(const i, j : Word): TNeuron;
 begin
   Result := (Neurons[i, j] as TNeuronBeer)
@@ -1012,18 +955,15 @@ begin
  SetSigma(DefaultPNNSigma);
 end;
 
-
 procedure TPattern.SetSigma(const V : Double);
 begin
   fSigma := Sqr(V);
 end;
 
-
 function TPattern.GetSigma : Double;
 begin
   Result := Sqrt(fSigma)
 end;
-
 
 procedure TPattern.AddWeight(const Weight : Double);
 begin
@@ -1031,7 +971,6 @@ begin
   fWeights[High(fWeights)] := Weight;
   fCountWeights := High(fWeights);
 end;
-
 
 procedure TPattern.SetArrWeights(const ArrWeights : array of Double);
 var
@@ -1044,13 +983,11 @@ begin
   fCountWeights := High(fWeights);
 end;
 
-
 procedure TPattern.ClearWeights;
 begin
   fWeights := nil;
   fCountWeights := 0;
 end;
-
 
 function TPattern.Calc(const InArr : array of Double): Double;
 var
@@ -1063,13 +1000,11 @@ begin
   fOutPut := Result;
 end;
 
-
 procedure TPattern.Free;
 begin
   ClearWeights;
   inherited Free;
 end;
-
 
 procedure TPattern.Load(var Stream: TFileStream);
 var
@@ -1081,7 +1016,6 @@ begin
   for i := 0 to fCountWeights do
     Stream.ReadBuffer(fWeights[i], SizeOf(Double));
 end;
-
 
 procedure TPattern.Save(var Stream: TFileStream);
 var
@@ -1109,7 +1043,6 @@ begin
   end;
 end;
 
-
 procedure TPNN.Free;
 var
   i : Word;
@@ -1124,7 +1057,6 @@ begin
   inherited Free;
 end;
 
-
 procedure TPNN.AddPattern;  // добавляет паттерн в конец массива
 begin
   SetLength(fArrPattern, High(fArrPattern) + 2);
@@ -1132,12 +1064,10 @@ begin
   fCountPattern := High(fArrPattern);
 end;
 
-
 procedure TPNN.SetSigmaToPattern(const SigmaVal: Double; const NumPattern : Word);
 begin
   fArrPattern[NumPattern].Sigma := SigmaVal;
 end;
-
 
 procedure TPNN.SetSigmaAllPattern(const SigmaVal: Double);
 var
@@ -1146,7 +1076,6 @@ begin
   for i := 0 to fCountPattern do
     SetSigmaToPattern(SigmaVal, i);
 end;
-
 
 function TPNN.Calc(const InArr : array of Double): Word;
 var
@@ -1168,7 +1097,6 @@ begin
   fOutValue := MaxValue;
 end;
 
-
 procedure TPNN.Load(var Stream: TFileStream);
 var
   i : Word;
@@ -1182,7 +1110,6 @@ begin
   end;
 end;
 
-
 procedure TPNN.Save(var Stream: TFileStream);
 var
   i : Word;
@@ -1191,7 +1118,6 @@ begin
   for i := 0 to fCountPattern do
     fArrPattern[i].Save(Stream);
 end;
-
 
 procedure TPNN.Mirrors(const P1, P2 : Word);   //зеркалит два паттерна
 var
@@ -1203,7 +1129,6 @@ begin
   for i := 0 to fArrPattern[P1].fCountWeights do
     fArrPattern[P1].fWeights[i] := -fArrPattern[P1].fWeights[i]
 end;
-
 
 procedure TPNN.MirrorsOne(const P1 : Word);  //зеркалит паттерн на самое себя
 var
